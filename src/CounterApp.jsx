@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import PropTypes from 'prop-types';
 
 export const CounterApp = () => {
+
+    const storageTentativesArray = localStorage.getItem("tentatives") || '[]';
+    const storageTentatives = JSON.parse(storageTentativesArray);
+    const storageNumber = localStorage.getItem("number");
     
-    const [ number, setNumber ] = useState('');
-    const [ whatsNumber, setWhatsNumber] = useState()
-    const [showForm, setShowForm] = useState(false);
-    const [tentatives, setTentatives] = useState([])
+    const [ number, setNumber ] = useState(storageNumber === 'null' ? '': storageNumber);
+    const [ whatsNumber, setWhatsNumber] = useState();
+    const [showForm, setShowForm] = useState(!!storageTentatives?.length);
+    const [tentatives, setTentatives] = useState(storageTentatives);
 
     const handleNumber = (value) => { 
         // console.log(event)
@@ -31,49 +34,63 @@ export const CounterApp = () => {
 
         const isCorrect = counts.countPosRight === 4 && counts.countRight === 4; 
 
+        localStorage.setItem('tentatives', JSON.stringify([...tentatives, {
+            whatsNumber, ...counts, isCorrect
+        }]));
+
         setTentatives([...tentatives, {
             whatsNumber, ...counts, isCorrect
-        }])
+        }]);
+
+    }
+
+    const reset = () => {
+        localStorage.setItem("tentatives", '');
+        localStorage.setItem("number", '');
+        location.reload();
     }
 
     return (
-        <>
+        <div style={{display: 'flex', flexFlow: 'column', alignItems: 'center', padding: 10}}>
             {!showForm && (
                 <>
                     <h1>WhatsNumber</h1>
                     <h2> { number } </h2>
-                    <label>
+                    <p>
                         Digite o número:
-                        <br />
+                    </p>
+                    <div style={{display: 'flex'}}>
                         <input name="number" type='text' onChange={(e) => handleNumber(e?.target?.value)} />
-                    </label>
-                    <button onClick={() => save() }> Salvar </button>
+                        <button onClick={() => save() }> Salvar </button>
+                    </div>
                 </>
             )}
 
             {!!showForm && (
                 <>
-                    <label>
+                    <p>
                         Qual é o número:
-                        <br/>
+                    </p>
+                    <div style={{display:'flex'}}>
                         <input name="whatsNumber" type="text" onChange={(e) => setWhatsNumber(e?.target?.value)} />
                         <button onClick={() => chooseNumber()}>
                             Escolher
                         </button>
-                    </label>
-
-                    <br/>
+                    </div>
 
                     <div style={{display: 'flex', flexFlow: 'column', marginTop: 30}}>
+                        {console.log(tentatives)}
                     {tentatives.map((el) => (
                         <div key={el.whatsNumber}>
                             {el.whatsNumber} - {el.countRight} corretos, {el.countPosRight} posição correta
                         </div>
                     ))}
                     </div>
+
                 </>
             )}
-        </>
+            <button onClick={() => reset()} style={{marginTop: 30}}>reset</button>
+        </div>
     );
 }
 
