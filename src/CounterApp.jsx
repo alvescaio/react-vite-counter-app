@@ -1,33 +1,79 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 
-export const CounterApp = ({ value }) => {
+export const CounterApp = () => {
     
-    const [ counter, setCounter ] = useState( value );
+    const [ number, setNumber ] = useState('');
+    const [ whatsNumber, setWhatsNumber] = useState()
+    const [showForm, setShowForm] = useState(false);
+    const [tentatives, setTentatives] = useState([])
 
-    const handleAdd = () => { 
+    const handleNumber = (value) => { 
         // console.log(event)
-        setCounter( counter + 1 );
+        setNumber(value);
         // setCounter( (c) => c + 1 )
     }
 
-    const handleSubstract = () => setCounter( counter - 1 );
-    const handleReset = () => setCounter( value );
+    const save = () => {
+        localStorage.setItem("number", number);
+        setShowForm(true);
+    }
+
+    const chooseNumber = () => {
+        const counts = [...number].reduce((acc, cur, index) => {
+            if(whatsNumber.indexOf(cur) > -1) {
+                acc.countRight = acc.countRight + 1;
+                if(whatsNumber.indexOf(cur) === index)
+                    acc.countPosRight = acc.countPosRight + 1;
+            }
+            return acc;
+        }, {countRight: 0, countPosRight: 0});
+
+        const isCorrect = counts.countPosRight === 4 && counts.countRight === 4; 
+
+        setTentatives([...tentatives, {
+            whatsNumber, ...counts, isCorrect
+        }])
+    }
 
     return (
         <>
-            <h1>CounterApp</h1>
-            <h2> { counter } </h2>
+            {!showForm && (
+                <>
+                    <h1>WhatsNumber</h1>
+                    <h2> { number } </h2>
+                    <label>
+                        Digite o número:
+                        <br />
+                        <input name="number" type='text' onChange={(e) => handleNumber(e?.target?.value)} />
+                    </label>
+                    <button onClick={() => save() }> Salvar </button>
+                </>
+            )}
 
-            <button onClick={ handleAdd }> +1 </button>
-            <button onClick={ handleSubstract }> -1 </button>
-            <button aria-label="btn-reset" onClick={ handleReset }> Reset </button>
+            {!!showForm && (
+                <>
+                    <label>
+                        Qual é o número:
+                        <br/>
+                        <input name="whatsNumber" type="text" onChange={(e) => setWhatsNumber(e?.target?.value)} />
+                        <button onClick={() => chooseNumber()}>
+                            Escolher
+                        </button>
+                    </label>
+
+                    <br/>
+
+                    <div style={{display: 'flex', flexFlow: 'column', marginTop: 30}}>
+                    {tentatives.map((el) => (
+                        <div key={el.whatsNumber}>
+                            {el.whatsNumber} - {el.countRight} corretos, {el.countPosRight} posição correta
+                        </div>
+                    ))}
+                    </div>
+                </>
+            )}
         </>
     );
 }
-
-CounterApp.propTypes = {
-    value: PropTypes.number.isRequired
-}
-
 
